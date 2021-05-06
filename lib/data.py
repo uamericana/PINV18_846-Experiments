@@ -186,8 +186,8 @@ def introspect_batched_dataset(dataset: tf.data.Dataset, name: str, class_names:
     for images, labels in dataset.take(-1):
         for i in range(len(images)):
             idx = int(labels[i])
-            counts[class_names[idx]] = 1
-            total = 1
+            counts[class_names[idx]] = counts[class_names[idx]] + 1
+            total += 1
 
     return name, total, counts
 
