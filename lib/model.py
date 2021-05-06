@@ -1,9 +1,11 @@
 import json
 import time
 from enum import Enum
-from typing import Callable, Any
+from typing import Callable, Any, List, Tuple
 
 import tensorflow as tf
+
+from lib import classification
 
 _TL_EPOCHS = 20
 _FINE_EPOCHS = 10
@@ -249,16 +251,48 @@ def fine_tune(retinopathy: RetinopathyModel,
     return history, model
 
 
+def classification_summary(trained: tf.keras.models.Model, test_dataset: tf.data.Dataset, class_names: List[str]):
+    report = classification.model_classification_report(trained, test_dataset, class_names)
+    metrics = classification.classification_metrics(report)
+    return metrics, report
+
+
+def run_and_evaluate(fit_block: Callable[[], Tuple[tf.keras.callbacks.History, tf.keras.models.Model]],
+                     test_dataset: tf.data.Dataset,
+                     class_names: List[str],
+                     metrics_callback: Callable[[tf.keras.Model], Any] = None):
+    tic = time.perf_counter()
+    history, fitted_model = fit_block()
+    toc = time.perf_counter()
+    train_time = toc - tic
+    loss, accuracy = fitted_model.evaluate(test_dataset, verbose=0)
+    metrics, report = classification_summary(fitted_model, test_dataset, class_names)
+
+    if metrics_callback:
+        metrics = {**metrics, 'extra': metrics_callback(fitted_model)}
+
+    metrics = {
+        'time': train_time,
+        'loss': loss,
+        'accuracy': accuracy,
+        **metrics
+    }
+
+    return metrics, report
+
+
 def transfer_and_fine_tune(
         retinopathy: RetinopathyModel,
         training_params: TrainingParams,
         train_dataset: tf.data.Dataset,
         validation_dataset: tf.data.Dataset,
         test_dataset: tf.data.Dataset,
+        class_names: List[str],
         metrics_callback: Callable[[tf.keras.Model], Any] = None,
-        verbose=0):
+        verbose=0) -> (dict, dict):
     """
     Train model using transfer learning followed by fine tuning
+    :param class_names: class names
     :param retinopathy: retinopathy model
     :param training_params: training parameters
     :param train_dataset
@@ -266,48 +300,23 @@ def transfer_and_fine_tune(
     :param test_dataset
     :param metrics_callback:
     :param verbose: verbose logging level
-    :return:
+    :return: (metrics dict, reports dict)
     """
 
-    tic = time.perf_counter()
-    tl_history, tl_model = transfer_learn(retinopathy,
-                                          train_dataset,
-                                          validation_dataset,
-                                          training_params,
-                                          verbose=verbose)
-    toc = time.perf_counter()
-    tl_time = toc - tic
-    tl_loss, tl_accuracy = tl_model.evaluate(test_dataset, verbose=verbose)
-    tl_metrics = {}
+    def tl_block():
+        return transfer_learn(retinopathy, train_dataset, validation_dataset, training_params, verbose=verbose)
 
-    if metrics_callback:
-        tl_metrics = metrics_callback(tl_model)
+    def fine_block():
+        return fine_tune(retinopathy, train_dataset, validation_dataset, training_params, verbose=verbose)
 
-    tic = time.perf_counter()
-    fine_history, fine_model = fine_tune(retinopathy,
-                                         train_dataset,
-                                         validation_dataset,
-                                         training_params,
-                                         verbose=verbose)
-    toc = time.perf_counter()
-    fine_time = toc - tic
-    fine_loss, fine_accuracy = fine_model.evaluate(test_dataset, verbose=verbose)
-    fine_metrics = {}
+    start = time.perf_counter()
+    tl_metrics, tl_report = run_and_evaluate(tl_block, test_dataset, class_names,
+                                             metrics_callback=metrics_callback)
+    fine_metrics, fine_report = run_and_evaluate(fine_block, test_dataset, class_names,
+                                                 metrics_callback=metrics_callback)
+    end = time.perf_counter()
+    total_time = end - start
+    metrics = {'total_time': total_time, 'tl': tl_metrics, 'fine': fine_metrics}
+    reports = {'tl': tl_report, 'fine': fine_report}
 
-    if metrics_callback:
-        fine_metrics = metrics_callback(fine_model)
-
-    return {
-        'tl_history': tl_history,
-        'tl_model': tl_model,
-        'tl_time': tl_time,
-        'tl_loss': tl_loss,
-        'tl_accuracy': tl_accuracy,
-        'tl_metrics': tl_metrics,
-        'fine_history': fine_history,
-        'fine_model': fine_model,
-        'fine_time': fine_time,
-        'fine_loss': fine_loss,
-        'fine_accuracy': fine_accuracy,
-        'fine_metrics': fine_metrics
-    }
+    return metrics, reports

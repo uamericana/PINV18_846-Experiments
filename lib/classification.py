@@ -33,10 +33,10 @@ def predictions(model, test_ds, class_names, return_classes=True):
     if not return_classes:
         return y_true, y_pred
 
-    def labels(y):
+    def get_labels(y):
         return np.apply_along_axis(lambda idx: class_names[idx], 0, y)
 
-    return labels(y_true), labels(y_pred)
+    return get_labels(y_true), get_labels(y_pred)
 
 
 def model_classification_report(model, test_ds, class_names):
@@ -46,25 +46,15 @@ def model_classification_report(model, test_ds, class_names):
     return df
 
 
-def merge_results(logbook, reports):
-    logbook_df = pd.DataFrame(logbook)
-    df = logbook_df[
-        ['class_type', 'shuffle_batches', 'reshuffle', 'splits', 'model', 'tl_time', 'fine_time', 'tl_accuracy',
-         'fine_accuracy']]
-    rows = []
-    for model_name, report in reports.items():
-        recalls = report[['recall']][:-3]
-        n = recalls.shape[0]
-        recalls = recalls.transpose()
-        recalls['model'] = model_name
-        recalls['Sensitivity'] = np.nan
-        recalls['Specificity'] = np.nan
+def classification_metrics(report: pd.DataFrame):
+    recalls = report[['recall']][:-3]
+    n = recalls.shape[0]
+    recalls = recalls.transpose()
+    recalls['Sensitivity'] = np.nan
+    recalls['Specificity'] = np.nan
 
-        if n == 2:
-            recalls['Sensitivity'] = recalls[['Has DR Signs']]
-            recalls['Specificity'] = recalls[['No DR Signs']]
+    if n == 2:
+        recalls['Sensitivity'] = recalls[['Has DR Signs']]
+        recalls['Specificity'] = recalls[['No DR Signs']]
 
-        rows.append(recalls[['model', 'Sensitivity', 'Specificity']])
-    report = pd.concat(rows).reset_index(drop=True)
-    df = pd.merge(df, report)
-    return df
+    return recalls[['Sensitivity', 'Specificity']].iloc[0, :].to_dict()
