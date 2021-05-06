@@ -1,15 +1,13 @@
 import os
 import pathlib
 import re
-from typing import List
+from typing import List, Type
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from lib.info import DatasetInfo, retinopathy_v2
-
-RetinopathyV2 = retinopathy_v2()
+from lib.datasets.info import DatasetInfo
 
 
 def download_dataset(dataset_info: DatasetInfo, dest_dir: str):
@@ -209,7 +207,7 @@ def summarize_batched_datasets(datasets: tf.data.Dataset, names: List[str], clas
 
 
 def build_dataset(
-        dataset_info: DatasetInfo,
+        dataset_info: Type[DatasetInfo],
         project_dir: str,
         img_size: tuple,
         batch_size,
