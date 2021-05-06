@@ -1,7 +1,7 @@
 import json
 import time
 from enum import Enum
-from typing import Callable
+from typing import Callable, Any
 
 import tensorflow as tf
 
@@ -255,7 +255,7 @@ def transfer_and_fine_tune(
         train_dataset: tf.data.Dataset,
         validation_dataset: tf.data.Dataset,
         test_dataset: tf.data.Dataset,
-        metrics_callback: Callable[[tf.keras.Model], dict] = None,
+        metrics_callback: Callable[[tf.keras.Model], Any] = None,
         verbose=0):
     """
     Train model using transfer learning followed by fine tuning
@@ -264,6 +264,7 @@ def transfer_and_fine_tune(
     :param train_dataset
     :param validation_dataset
     :param test_dataset
+    :param metrics_callback:
     :param verbose: verbose logging level
     :return:
     """

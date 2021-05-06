@@ -1,16 +1,18 @@
-from lib import model, data, determ
+from typing import List
 
+from lib import model, data, determ, classification
 from lib.datasets.retinopathyv2a import RetinopathyV2a
 
+import tensorflow as tf
+
 BATCH_SIZE = 32
-SPLITS = [0.65, 0.25, 0.15]
 SPLITS_NAMES = ["Train", "Validation", "Test"]
 PROJECT_ROOT = '.'
 
 
 def dataset_defaults(
         img_size: int,
-        splits=SPLITS,
+        splits: List[float],
         remap_with=RetinopathyV2a.mapping.c2,
         shuffle_batches=True,
         reshuffle=False):
@@ -29,7 +31,13 @@ def dataset_defaults(
     )
 
 
-if __name__ == '__main__':
+def classification_metrics(trained: tf.keras.Model, test_dataset: tf.data.Dataset, class_names: List[str]):
+    report = classification.model_classification_report(trained, test_dataset, class_names)
+
+    return report
+
+
+def execute_experiment(splits):
     determ.set_global_determinism(42)
 
     model_params = model.ModelParams(
@@ -49,13 +57,23 @@ if __name__ == '__main__':
         fine_layers=30
     )
 
-    datasets, class_names, images_df = dataset_defaults(img_size=model_params.image_size)
+    datasets, class_names, images_df = dataset_defaults(img_size=model_params.image_size, splits=splits)
+    summary_df = data.summarize_batched_datasets(datasets, SPLITS_NAMES, class_names)
     train_dataset, validation_dataset, test_dataset = datasets
+
+    def metrics_callback(trained: tf.keras.models.Model):
+        return classification_metrics(trained, test_dataset, class_names)
 
     retinopathy_resnet50 = model.RetinopathyModel(model_params)
     results = model.transfer_and_fine_tune(
         retinopathy_resnet50, training_params,
         train_dataset, validation_dataset, test_dataset,
+        metrics_callback=metrics_callback,
         verbose=1)
 
-    print(results)
+    return results, summary_df
+
+
+if __name__ == '__main__':
+    experiment1 = execute_experiment(splits=[0.65, 0.25, 0.15])
+    experiment2 = execute_experiment(splits=[0.7, 0.2, 0.1])
