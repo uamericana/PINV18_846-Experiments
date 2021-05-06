@@ -1,5 +1,7 @@
 import json
+import time
 from enum import Enum
+
 import tensorflow as tf
 
 _TL_EPOCHS = 20
@@ -244,3 +246,55 @@ def fine_tune(retinopathy: RetinopathyModel,
                         )
 
     return history, model
+
+
+def transfer_and_fine_tune(
+        retinopathy: RetinopathyModel,
+        training_params: TrainingParams,
+        train_dataset: tf.data.Dataset,
+        validation_dataset: tf.data.Dataset,
+        test_dataset: tf.data.Dataset,
+        verbose: 0):
+    """
+    Train model using transfer learning followed by fine tuning
+    :param retinopathy: retinopathy model
+    :param training_params: training parameters
+    :param train_dataset
+    :param validation_dataset
+    :param test_dataset
+    :param verbose: verbose logging level
+    :return:
+    """
+
+    tic = time.perf_counter()
+    tl_history, tl_model = transfer_learn(retinopathy,
+                                          train_dataset,
+                                          validation_dataset,
+                                          training_params,
+                                          verbose=verbose)
+    toc = time.perf_counter()
+    tl_time = toc - tic
+    tl_loss, tl_accuracy = tl_model.evaluate(test_dataset, verbose=verbose)
+
+    tic = time.perf_counter()
+    fine_history, fine_model = fine_tune(retinopathy,
+                                         train_dataset,
+                                         validation_dataset,
+                                         training_params,
+                                         verbose=verbose)
+    toc = time.perf_counter()
+    fine_time = toc - tic
+    fine_loss, fine_accuracy = fine_model.evaluate(test_dataset, verbose=verbose)
+
+    return {
+        'tl_history': tl_history,
+        'tl_model': tl_model,
+        'tl_time': tl_time,
+        'tl_loss': tl_loss,
+        'tl_accuracy': tl_accuracy,
+        'fine_history': fine_history,
+        'fine_model': fine_model,
+        'fine_time': fine_time,
+        'fine_loss': fine_loss,
+        'fine_accuracy': fine_accuracy
+    }

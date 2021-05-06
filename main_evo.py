@@ -1,4 +1,4 @@
-from lib import model, dataset
+from lib import model, dataset, determ
 import tensorflow as tf
 
 BATCH_SIZE = 32
@@ -13,7 +13,6 @@ def dataset_defaults(
         remap_with=dataset.RetinopathyV2.mappings['c2'],
         shuffle_batches=True,
         reshuffle=False):
-    tf.random.set_seed(42)
     img_size = (img_size, img_size)
 
     return dataset.build_dataset(
@@ -30,6 +29,8 @@ def dataset_defaults(
 
 
 if __name__ == '__main__':
+    determ.set_global_determinism(42)
+
     model_params = model.ModelParams(
         base_model=model.BaseModel.RESNET50_v2,
         image_size=160,
@@ -41,32 +42,19 @@ if __name__ == '__main__':
 
     training_params = model.TrainingParams(
         tl_learning_rate=0.0001,
-        tl_epochs=10,
+        tl_epochs=20,
         fine_learning_rate=0.00001,
-        fine_epochs=5,
-        fine_layers=5
+        fine_epochs=10,
+        fine_layers=30
     )
-
-    print(model_params)
-    print(training_params)
-
-    retinopathy_resnet50 = model.RetinopathyModel(model_params)
 
     datasets, class_names, images_df = dataset_defaults(img_size=model_params.image_size)
     train_dataset, validation_dataset, test_dataset = datasets
 
-    tl_history, tl_model = model.transfer_learn(retinopathy_resnet50,
-                                                train_dataset,
-                                                validation_dataset,
-                                                training_params,
-                                                verbose=0)
+    retinopathy_resnet50 = model.RetinopathyModel(model_params)
+    results = model.transfer_and_fine_tune(
+        retinopathy_resnet50, training_params,
+        train_dataset, validation_dataset, test_dataset,
+        verbose=1)
 
-    tl_loss, tl_accuracy = tl_model.evaluate(test_dataset)
-
-    fine_history, fine_model = model.fine_tune(retinopathy_resnet50,
-                                               train_dataset,
-                                               validation_dataset,
-                                               training_params,
-                                               verbose=1)
-
-    fine_loss, fine_accuracy = fine_model.evaluate(test_dataset)
+    print(results)
