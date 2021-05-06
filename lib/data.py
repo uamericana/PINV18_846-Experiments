@@ -10,7 +10,7 @@ import tensorflow as tf
 from lib.datasets.info import DatasetInfo
 
 
-def download_dataset(dataset_info: DatasetInfo, dest_dir: str):
+def download_dataset(dataset_info: Type[DatasetInfo], dest_dir: str):
     """
     Download dataset
     :param dataset_info: dataset info
@@ -19,7 +19,11 @@ def download_dataset(dataset_info: DatasetInfo, dest_dir: str):
     """
     save_dir = os.path.join(dest_dir, dataset_info.name)
     os.makedirs(save_dir, exist_ok=True)
-    url = dataset_info.url
+    url = dataset_info.url.strip()
+
+    # no url
+    if not url.strip():
+        return save_dir
 
     zip_path = tf.keras.utils.get_file(f"{dataset_info.name}.zip", url, extract=False)
 
@@ -232,9 +236,9 @@ def build_dataset(
     :return: split datasets, class names, images DataFrame (useful for debugging)
     """
     data_dir = os.path.join(project_dir, "data")
-    download_dataset(dataset_info, data_dir)
+    img_dir = download_dataset(dataset_info, data_dir)
 
-    images_df = image_df(data_dir)
+    images_df = image_df(img_dir)
 
     (images_ds, class_names) = image_dataset(
         images_df, img_size=img_size, remap_classes=remap_classes

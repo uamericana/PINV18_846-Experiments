@@ -1,6 +1,7 @@
 import json
 import time
 from enum import Enum
+from typing import Callable
 
 import tensorflow as tf
 
@@ -254,7 +255,8 @@ def transfer_and_fine_tune(
         train_dataset: tf.data.Dataset,
         validation_dataset: tf.data.Dataset,
         test_dataset: tf.data.Dataset,
-        verbose: 0):
+        metrics_callback: Callable[[tf.keras.Model], dict] = None,
+        verbose=0):
     """
     Train model using transfer learning followed by fine tuning
     :param retinopathy: retinopathy model
@@ -275,6 +277,10 @@ def transfer_and_fine_tune(
     toc = time.perf_counter()
     tl_time = toc - tic
     tl_loss, tl_accuracy = tl_model.evaluate(test_dataset, verbose=verbose)
+    tl_metrics = {}
+
+    if metrics_callback:
+        tl_metrics = metrics_callback(tl_model)
 
     tic = time.perf_counter()
     fine_history, fine_model = fine_tune(retinopathy,
@@ -285,6 +291,10 @@ def transfer_and_fine_tune(
     toc = time.perf_counter()
     fine_time = toc - tic
     fine_loss, fine_accuracy = fine_model.evaluate(test_dataset, verbose=verbose)
+    fine_metrics = {}
+
+    if metrics_callback:
+        fine_metrics = metrics_callback(fine_model)
 
     return {
         'tl_history': tl_history,
@@ -292,9 +302,11 @@ def transfer_and_fine_tune(
         'tl_time': tl_time,
         'tl_loss': tl_loss,
         'tl_accuracy': tl_accuracy,
+        'tl_metrics': tl_metrics,
         'fine_history': fine_history,
         'fine_model': fine_model,
         'fine_time': fine_time,
         'fine_loss': fine_loss,
-        'fine_accuracy': fine_accuracy
+        'fine_accuracy': fine_accuracy,
+        'fine_metrics': fine_metrics
     }

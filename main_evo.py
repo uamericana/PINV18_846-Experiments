@@ -1,7 +1,6 @@
 from lib import model, data, determ
-import tensorflow as tf
 
-from lib.datasets.retinopathyv2 import RetinopathyV2
+from lib.datasets.retinopathyv2a import RetinopathyV2a
 
 BATCH_SIZE = 32
 SPLITS = [0.65, 0.25, 0.15]
@@ -12,13 +11,13 @@ PROJECT_ROOT = '.'
 def dataset_defaults(
         img_size: int,
         splits=SPLITS,
-        remap_with=RetinopathyV2.mapping.c2,
+        remap_with=RetinopathyV2a.mapping.c2,
         shuffle_batches=True,
         reshuffle=False):
     img_size = (img_size, img_size)
 
     return data.build_dataset(
-        RetinopathyV2,
+        RetinopathyV2a,
         PROJECT_ROOT,
         img_size,
         BATCH_SIZE,
