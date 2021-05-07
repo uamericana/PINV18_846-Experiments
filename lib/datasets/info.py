@@ -1,12 +1,8 @@
 from enum import Enum
-from abc import ABC, ABCMeta
-
-
-class DatasetMapping(ABC):
-    pass
+from abc import ABC
 
 
 class DatasetInfo(ABC):
     name: str
     url: str
-    mapping: DatasetMapping
+    mapping: Enum

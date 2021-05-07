@@ -1,7 +1,9 @@
-from lib.datasets.info import DatasetMapping, DatasetInfo
+from enum import Enum
+
+from lib.datasets.info import DatasetInfo
 
 
-class RetinopathyV2Mapping(DatasetMapping):
+class RetinopathyV2Mapping(Enum):
     c2 = {
         "No DR Signs": ["No DR Signs"],
         "Has DR Signs": [

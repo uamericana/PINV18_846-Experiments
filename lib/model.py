@@ -16,10 +16,19 @@ _BASE_MODEL_WEIGHTS = 'imagenet'
 
 class MLParamsEncoder(json.JSONEncoder):
     def default(self, obj):
+        try:
+            name = obj.name
+            if issubclass(type(name), str):
+                return name
+        except AttributeError:
+            pass
+
         if issubclass(type(obj), Enum):
             return obj.name
         try:
             return obj.__dict__
+        except AttributeError:
+            pass
         except TypeError:
             pass
         return json.JSONEncoder.default(self, obj)

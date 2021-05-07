@@ -1,9 +1,11 @@
-from lib.datasets.info import DatasetMapping, DatasetInfo
+from enum import Enum
+
+from lib.datasets.info import DatasetInfo
 
 _fondo_normal = 'fondo-normal-anon'
 
 
-class RetinopathyV2aMapping(DatasetMapping):
+class RetinopathyV2aMapping(Enum):
     c2 = {
         "No DR Signs": ["No DR Signs", _fondo_normal],
         "Has DR Signs": [
