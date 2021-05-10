@@ -51,10 +51,16 @@ class MLParams:
     def to_json(self):
         return json.dumps(self, cls=MLParamsEncoder)
 
+    def as_name(self) -> str:
+        raise NotImplementedError
+
     @classmethod
     def from_json(cls, json_st: str):
         d = json.loads(json_st)
         return cls.__init__(**d)
+
+    def __hash__(self) -> int:
+        return self.as_name().__hash__()
 
     def __str__(self) -> str:
         return self.to_json()
@@ -105,6 +111,9 @@ class ModelParams(MLParams):
                f"gp{self.global_pooling.name}-" \
                f"da{self.use_data_augmentation}"
 
+    def __hash__(self):
+        return self.as_name().__hash__()
+
     @classmethod
     def from_json(cls, json_st: str):
         d = json.loads(json_st)
@@ -146,7 +155,7 @@ def make_model(model_params: ModelParams):
     x = preprocess_fun(x)
     x = base_model(x, training=False)
 
-    if model_params.global_pooling is not None:
+    if model_params.global_pooling.value is not None and model_params.global_pooling != model_params.global_pooling.NO_POOLING:
         pooling_layer: tf.keras.layers.Layer = model_params.global_pooling.value()
         x = pooling_layer(x)
 

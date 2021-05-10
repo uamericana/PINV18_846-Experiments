@@ -44,6 +44,13 @@ class DataParams(MLParams):
 
         return dataset, mapping
 
+    def as_name(self) -> str:
+        return f"ds{self.dataset}-" \
+               f"sp{'_'.join([str(s) for s in self.splits])}-" \
+               f"is{self.image_size}-" \
+               f"bs{self.batch_size}-" \
+               f"rm{self.remap}"
+
 
 def dataset_defaults(
         project_root: str,
@@ -68,14 +75,14 @@ def dataset_defaults(
     )
 
 
-def execute_experiment(datasets, class_names, model_params, training_params):
+def execute_experiment(datasets, class_names, model_params, training_params, verbose=2):
     train_dataset, validation_dataset, test_dataset = datasets
     retinopathy_model = model.RetinopathyModel(model_params)
 
     metrics, reports = model.transfer_and_fine_tune(
         retinopathy_model, training_params,
         train_dataset, validation_dataset, test_dataset, class_names,
-        verbose=1)
+        verbose=verbose)
 
     total_time = metrics.pop('total_time')
     metrics_df = pd.DataFrame(metrics)

@@ -2,6 +2,7 @@ from lib import model, data, determ
 from lib.datasets.retinopathyv2a import RetinopathyV2a
 from lib.experiment import DataParams, dataset_defaults, execute_experiment
 from sklearn.model_selection import ParameterGrid
+import pickle
 
 if __name__ == '__main__':
 
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     model_grid = {
         'base_model': [m.name for m in model.BaseModel],
         'dropout': [0.2],
-        'global_pooling': [g.name for g in model.GlobalPooling],
+        'global_pooling': [model.GlobalPooling.AVG_POOLING.name, model.GlobalPooling.MAX_POOLING.name],
         'tl_learning_rate': [10e-5],
         'tl_epochs': [10],
         'fine_learning_rate': [10e-6],
@@ -36,6 +37,8 @@ if __name__ == '__main__':
     data_params_grid = ParameterGrid(dataset_grid)
     model_params_grid = ParameterGrid(model_grid)
 
+    logbook = {}
+
     for dcomb in data_params_grid:
         mcomb = dcomb
         data_params = DataParams(
@@ -45,15 +48,19 @@ if __name__ == '__main__':
             remap=dcomb['mapping']
         )
 
-        # datasets, class_names, images_df = dataset_defaults(PROJECT_ROOT, data_params)
-        # summary_df = data.summarize_batched_datasets(datasets, SPLITS_NAMES, class_names)
-        print()
-        print(data_params)
-        print()
+        dataname = data_params.as_name()
+        datasets, class_names, images_df = dataset_defaults(PROJECT_ROOT, data_params)
+        summary_df = data.summarize_batched_datasets(datasets, SPLITS_NAMES, class_names)
+
+        datalog = {}
+        logbook[dataname] = datalog
+
+        print(dataname)
+        print("*" * 20)
 
         for mcomb in model_params_grid:
             model_params = model.ModelParams(
-                num_classes=2,
+                num_classes=len(class_names),
                 base_model=model.BaseModel[mcomb['base_model']],
                 image_size=160,
                 dropout=mcomb['dropout'],
@@ -68,6 +75,15 @@ if __name__ == '__main__':
                 fine_epochs=mcomb['fine_epochs'],
                 fine_layers=mcomb['fine_layers']
             )
+            experiment_name = f"{model_params.as_name()}--{training_params.as_name()}"
 
-            print(model_params)
-            print(training_params)
+            print(experiment_name)
+            results = execute_experiment(datasets, class_names, model_params, training_params, verbose=2)
+            metrics_df, reports, retinopathy_model = results
+            datalog[experiment_name] = {'metrics_df': metrics_df, 'reports': reports}
+
+            print(metrics_df)
+            print("-" * 20)
+
+    with open("logbook.pkl", "wb") as logfile:
+        pickle.dump(logbook, logfile)
