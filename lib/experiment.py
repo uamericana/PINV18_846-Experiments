@@ -85,6 +85,5 @@ def execute_experiment(datasets, class_names, model_params, training_params, ver
         verbose=verbose)
 
     total_time = metrics.pop('total_time')
-    metrics_df = pd.DataFrame(metrics)
 
-    return metrics_df, reports, retinopathy_model
+    return metrics, reports, retinopathy_model

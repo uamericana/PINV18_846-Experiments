@@ -30,13 +30,13 @@ if __name__ == '__main__':
 
     training_params = model.TrainingParams(
         tl_learning_rate=0.0001,
-        tl_epochs=10,
+        tl_epochs=20,
         fine_learning_rate=0.00001,
-        fine_epochs=5,
+        fine_epochs=10,
         fine_layers=30
     )
 
     print(model_params)
     print(training_params)
 
-    metrics_df, reports, retinopathy_model = execute_experiment(datasets, class_names, model_params, training_params)
+    metrics, reports, retinopathy_model = execute_experiment(datasets, class_names, model_params, training_params)
