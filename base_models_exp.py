@@ -1,8 +1,10 @@
-from lib import model, data, determ
-from lib.datasets.retinopathyv2a import RetinopathyV2a
-from lib.experiment import DataParams, dataset_defaults, execute_experiment
-from sklearn.model_selection import ParameterGrid
 import pickle
+
+from sklearn.model_selection import ParameterGrid
+
+from lib import model, data, determ
+from lib.datasets.retinopathyv2b import RetinopathyV2b
+from lib.experiment import DataParams, dataset_defaults, execute_experiment
 
 if __name__ == '__main__':
 
@@ -17,8 +19,8 @@ if __name__ == '__main__':
     }
 
     dataset_grid = [
-        {'dataset': [RetinopathyV2a.name],
-         'mapping': [RetinopathyV2a.mapping.c2.name, RetinopathyV2a.mapping.c3.name],
+        {'dataset': [RetinopathyV2b.name],
+         'mapping': [RetinopathyV2b.mapping.c2.name, RetinopathyV2b.mapping.c3.name],
          **data_grid
          },
     ]
