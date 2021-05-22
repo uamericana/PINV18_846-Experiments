@@ -36,7 +36,7 @@ class MLParamsEncoder(json.JSONEncoder):
 
 class BaseModel(Enum):
     RESNET50_v2 = [tf.keras.applications.resnet_v2.ResNet50V2, tf.keras.applications.resnet_v2.preprocess_input]
-    RESNET100_v2 = [tf.keras.applications.resnet_v2.ResNet101V2, tf.keras.applications.resnet_v2.preprocess_input]
+    RESNET101_v2 = [tf.keras.applications.resnet_v2.ResNet101V2, tf.keras.applications.resnet_v2.preprocess_input]
     XCEPTION = [tf.keras.applications.xception.Xception, tf.keras.applications.xception.preprocess_input]
     MOBILENET_v2 = [tf.keras.applications.mobilenet_v2.MobileNetV2, tf.keras.applications.mobilenet_v2.preprocess_input]
 
@@ -292,6 +292,7 @@ def run_and_evaluate(fit_block: Callable[[], Tuple[tf.keras.callbacks.History, t
     metrics = {
         'time': train_time,
         'loss': loss,
+        'val_accuracy': history.history['val_accuracy'][-1],
         'accuracy': accuracy,
         **metrics
     }
