@@ -4,3 +4,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 deap_resnet*
+*.pkl
+**/.ipynb_checkpoints
