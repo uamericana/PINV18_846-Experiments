@@ -1,5 +1,5 @@
 from lib import model, data, determ
-from lib.datasets.retinopathyv2a import RetinopathyV2a
+from lib.datasets.retinopathyv2b import RetinopathyV2b
 from lib.experiment import DataParams, dataset_defaults, execute_experiment
 
 if __name__ == '__main__':
@@ -9,8 +9,8 @@ if __name__ == '__main__':
     determ.set_global_determinism(42)
 
     data_params = DataParams(
-        dataset=RetinopathyV2a.name,
-        remap=RetinopathyV2a.mapping.c2.name,
+        dataset=RetinopathyV2b.name,
+        remap=RetinopathyV2b.mapping.c2.name,
         image_size=160,
         batch_size=32,
         splits=[0.7, 0.2, 0.1]
@@ -29,11 +29,11 @@ if __name__ == '__main__':
     )
 
     training_params = model.TrainingParams(
-        tl_learning_rate=0.0001,
+        tl_learning_rate=0.01,
         tl_epochs=20,
-        fine_learning_rate=0.00001,
+        fine_learning_rate=1e-5,
         fine_epochs=10,
-        fine_layers=30
+        fine_layers=61
     )
 
     print(model_params)
