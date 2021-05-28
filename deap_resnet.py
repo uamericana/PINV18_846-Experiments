@@ -201,7 +201,7 @@ def main(run_number, ngen, npop, datalog, patience=5, cxpb=0.75, mutpb=0.05, che
 
 
 if __name__ == "__main__":
-    for run in range(4, 6):
+    for run in range(1, 6):
         results = main(run_number=run, ngen=30, npop=100, datalog=DATALOG)
         with open(f"results-{run:03d}.pkl", "wb") as f:
             pickle.dump(results, f)
