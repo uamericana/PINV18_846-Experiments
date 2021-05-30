@@ -40,7 +40,7 @@ def predictions(model, test_ds, class_names, return_classes=True):
 
 
 def model_classification_report(model, test_ds, class_names):
-    y_pred, y_true = predictions(model, test_ds, class_names)
+    y_true, y_pred = predictions(model, test_ds, class_names)
     df = classification_report_df(y_true, y_pred)
     df.loc["accuracy", "support"] = y_pred.shape[0]
     return df
