@@ -6,3 +6,5 @@ __pycache__/
 deap_resnet*
 *.pkl
 **/.ipynb_checkpoints
+notebooks/base_models.csv
+deap_results.csv
