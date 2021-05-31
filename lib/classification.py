@@ -1,7 +1,38 @@
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+
+
+def classification_metrics_for_class(matrix, class_value):
+    metrics = {
+        'TP': 0,
+        'TN': 0,
+        'FP': 0,
+        'FN': 0,
+    }
+
+    for i, row in enumerate(matrix):
+        for j, cell in enumerate(row):
+            if i == j and i == class_value:
+                metrics['TP'] += cell
+            elif i != class_value and j != class_value:
+                metrics['TN'] += cell
+            elif i != class_value and j == class_value:
+                metrics['FP'] += cell
+            elif i == class_value and j != class_value:
+                metrics['FN'] += cell
+
+    metrics['Sensitivity'] = metrics['TP'] / (metrics['TP'] + metrics['FN'])
+    metrics['Specificity'] = metrics['TN'] / (metrics['TN'] + metrics['FP'])
+    return metrics
+
+
+def classification_metrics_df(y_true, y_pred, labels):
+    matrix = confusion_matrix(y_true, y_pred, labels=labels)
+    all_metrics = [{**classification_metrics_for_class(matrix, i)} for i, label in enumerate(labels)]
+    df = pd.DataFrame(all_metrics, index=labels)
+    return df
 
 
 def classification_report_df(*args, **kwargs):
@@ -43,18 +74,12 @@ def model_classification_report(model, test_ds, class_names):
     y_true, y_pred = predictions(model, test_ds, class_names)
     df = classification_report_df(y_true, y_pred)
     df.loc["accuracy", "support"] = y_pred.shape[0]
-    return df
+    metrics = classification_metrics_df(y_true, y_pred, class_names)
+    return df.join(metrics)
 
 
 def classification_metrics(report: pd.DataFrame):
-    recalls = report[['recall']][:-3]
-    n = recalls.shape[0]
-    recalls = recalls.transpose()
-    recalls['Sensitivity'] = np.nan
-    recalls['Specificity'] = np.nan
-
-    if n == 2:
-        recalls['Sensitivity'] = recalls[['Has DR Signs']]
-        recalls['Specificity'] = recalls[['No DR Signs']]
-
-    return recalls[['Sensitivity', 'Specificity']].iloc[0, :].to_dict()
+    series = report.loc['No DR Signs']
+    sensitivity = series['Specificity']
+    specificity = series['Sensitivity']
+    return {'Specificity': specificity, 'Sensitivity': sensitivity}
