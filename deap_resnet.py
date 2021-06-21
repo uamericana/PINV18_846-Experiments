@@ -118,9 +118,18 @@ def register_data(run_dir):
     toolbox.register("data", lambda: [datasets, class_names, images_df])
 
 
+def start_population(npop):
+    dropout, train_layers, tl_learning_rate, fine_learning_rate = [0.2, 30, 0.0001, 0.00001]
+    population = toolbox.population(n=npop - 1)
+    default_params = [dropout, train_layers, tl_learning_rate, fine_learning_rate]
+    population.insert(0, default_params)
+
+    return population
+
+
 def restore_checkpoint(checkpoint_dir, npop):
     checkpoint_path = last_checkpoint(checkpoint_dir)
-    population = toolbox.population(n=npop)
+    population = start_population(npop)
     start_gen = 0
     halloffame = tools.HallOfFame(maxsize=5)
     logbook = tools.Logbook()
