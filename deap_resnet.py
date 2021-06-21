@@ -3,23 +3,23 @@ import pickle
 import random
 
 import numpy
+import tensorflow as tf
 from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
 
 import lib.model
-from evo_experiment import all_equal, last_checkpoint, checkpoint_file, restore_datalog, save_datalog
+from evo_experiment import last_checkpoint, checkpoint_file, restore_datalog, save_datalog
 from lib import determ, data, model
-from lib.datasets.retinopathyv2b import RetinopathyV2b
+from lib.datasets.retinopathyv3 import RetinopathyV3
 from lib.experiment import DataParams, dataset_defaults, execute_experiment, stop_criteria
-import tensorflow as tf
 
 SPLITS_NAMES = ["Train", "Validation", "Test"]
 PROJECT_ROOT = '.'
 
-DATASET = RetinopathyV2b.name
-DATASET_REMAP = RetinopathyV2b.mapping.c5.name
+DATASET = RetinopathyV3.name
+DATASET_REMAP = RetinopathyV3.mapping.c5.name
 BASE_MODEL = lib.model.BaseModel.RESNET50_v2
 
 EXPERIMENT_ROOT = f'deap-{DATASET}-{DATASET_REMAP}-{BASE_MODEL}'
