@@ -7,6 +7,7 @@ from lib import data, model
 from lib.datasets.retinopathyv2 import RetinopathyV2
 from lib.datasets.retinopathyv2a import RetinopathyV2a
 from lib.datasets.retinopathyv2b import RetinopathyV2b
+from lib.datasets.retinopathyv3 import RetinopathyV3
 from lib.model import MLParams
 
 DEFAULT_BATCH_SIZE = 32
@@ -14,7 +15,8 @@ DEFAULT_BATCH_SIZE = 32
 available_datasets = {
     RetinopathyV2a.name: RetinopathyV2a,
     RetinopathyV2b.name: RetinopathyV2b,
-    RetinopathyV2.name: RetinopathyV2
+    RetinopathyV2.name: RetinopathyV2,
+    RetinopathyV3.name: RetinopathyV3
 }
 
 
