@@ -8,3 +8,4 @@ deap_resnet*
 **/.ipynb_checkpoints
 notebooks/base_models.csv
 deap_results.csv
+deap-retinopathy-**/
