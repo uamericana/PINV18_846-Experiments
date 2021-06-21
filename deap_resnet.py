@@ -189,7 +189,7 @@ def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, start_mutpb=0.
             print(f"Converged max fitness {max_fitness}")
             break
 
-        print(f"Generation {generation}", flush=True)
+        print(f"Generation {generation}, mutpb={mutpb}", flush=True)
         population = algorithms.varAnd(population, toolbox, cxpb=cxpb, mutpb=mutpb)
 
         invalid_ind = [ind for ind in population if not ind.fitness.valid]
