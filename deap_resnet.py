@@ -17,7 +17,13 @@ import tensorflow as tf
 
 SPLITS_NAMES = ["Train", "Validation", "Test"]
 PROJECT_ROOT = '.'
-EXPERIMENT_ROOT = 'deap_resnet50v2_b'
+
+DATASET = RetinopathyV2b.name
+DATASET_REMAP = RetinopathyV2b.mapping.c5.name
+BASE_MODEL = lib.model.BaseModel.RESNET50_v2
+
+EXPERIMENT_ROOT = f'deap-{DATASET}-{DATASET_REMAP}-{BASE_MODEL}'
+
 os.makedirs(EXPERIMENT_ROOT, exist_ok=True)
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -25,8 +31,7 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
-base_model = lib.model.BaseModel.RESNET50_v2
-n_layers = len(base_model.value[0]().layers)
+n_layers = len(BASE_MODEL.value[0]().layers)
 max_train_layers = int(n_layers / 2)
 
 dropout_options = [0.1, 0.2, 0.3, 0.4, 0.5]
@@ -61,7 +66,7 @@ def eval_one_max(individual):
         return [datalog[key]['fine']['accuracy']]
 
     model_params = model.ModelParams(
-        base_model=model.BaseModel.RESNET101_v2,
+        base_model=BASE_MODEL,
         image_size=160,
         num_classes=len(class_names),
         dropout=dropout,
@@ -100,8 +105,8 @@ def register_data(run_dir):
     determ.set_global_determinism(42)
 
     data_params = DataParams(
-        dataset=RetinopathyV2b.name,
-        remap=RetinopathyV2b.mapping.c2.name,
+        dataset=DATASET,
+        remap=DATASET_REMAP,
         image_size=160,
         batch_size=32,
         splits=[0.7, 0.2, 0.1]
@@ -120,9 +125,7 @@ def restore_checkpoint(checkpoint_dir, npop):
     halloffame = tools.HallOfFame(maxsize=5)
     logbook = tools.Logbook()
 
-    if checkpoint_path is None:
-        return population, start_gen, halloffame, logbook
-    else:
+    try:
         with open(checkpoint_path, "rb") as cp_file:
             print(f"Restore checkpoint {checkpoint_path}")
             cp = pickle.load(cp_file)
@@ -132,6 +135,8 @@ def restore_checkpoint(checkpoint_dir, npop):
             logbook = cp['logbook']
             random.setstate(cp['rndstate'])
             return population, start_gen, halloffame, logbook
+    except:
+        return population, start_gen, halloffame, logbook
 
 
 def register_stats():

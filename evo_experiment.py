@@ -40,3 +40,15 @@ def save_datalog(experiment_dir, datalog):
     file = os.path.join(experiment_dir, "datalog.pkl")
     with open(file, "wb") as f:
         pickle.dump(datalog, f)
+
+
+def read_checkpoint(checkpoint_dir):
+    checkpoint_path = last_checkpoint(checkpoint_dir)
+
+    with open(checkpoint_path, "rb") as cp_file:
+        cp = pickle.load(cp_file)
+        population = cp['population']
+        start_gen = cp['generation'] + 1
+        halloffame = cp['halloffame']
+        logbook = cp['logbook']
+        return population, start_gen, halloffame, logbook
