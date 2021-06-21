@@ -20,6 +20,16 @@ available_datasets = {
 }
 
 
+def stop_criteria(fitness_history, patience=5):
+    last_history = fitness_history[-patience:]
+    if len(last_history) < patience:
+        return False
+
+    diffs = sum([abs(a - b) for a, b in zip(last_history, last_history[1:])])
+
+    return diffs == 0
+
+
 class DataParams(MLParams):
     def __init__(self,
                  dataset: str,

@@ -12,7 +12,7 @@ import lib.model
 from evo_experiment import all_equal, last_checkpoint, checkpoint_file, restore_datalog, save_datalog
 from lib import determ, data, model
 from lib.datasets.retinopathyv2b import RetinopathyV2b
-from lib.experiment import DataParams, dataset_defaults, execute_experiment
+from lib.experiment import DataParams, dataset_defaults, execute_experiment, stop_criteria
 import tensorflow as tf
 
 SPLITS_NAMES = ["Train", "Validation", "Test"]
@@ -151,7 +151,7 @@ def register_stats():
 DATALOG = restore_datalog(EXPERIMENT_ROOT)
 
 
-def main(run_number, ngen, npop, datalog, patience=5, cxpb=0.75, mutpb=0.05, checkfreq=1):
+def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, mutpb=0.05, checkfreq=1):
     run_dir = os.path.join(EXPERIMENT_ROOT, f"run-{run_number:03d}")
     os.makedirs(run_dir, exist_ok=True)
 
@@ -171,8 +171,9 @@ def main(run_number, ngen, npop, datalog, patience=5, cxpb=0.75, mutpb=0.05, che
         ind.fitness.values = fit
 
     for gen in range(start_gen, ngen + 1):
-        if gen > patience and all_equal([entry["max"] for entry in logbook[-patience:]]):
-            print(f"Converged max fitness {max}")
+        if stop_criteria([entry["max"] for entry in logbook], patience):
+            max_fitness = logbook[-1]["max"]
+            print(f"Converged max fitness {max_fitness}")
             break
 
         print(f"Gen {gen}", flush=True)
