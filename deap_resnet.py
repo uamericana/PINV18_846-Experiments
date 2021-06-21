@@ -151,7 +151,7 @@ def register_stats():
 DATALOG = restore_datalog(EXPERIMENT_ROOT)
 
 
-def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, mutpb=0.05, checkfreq=1):
+def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, start_mutpb=0.5, end_mutpb=0.05, checkfreq=1):
     run_dir = os.path.join(EXPERIMENT_ROOT, f"run-{run_number:03d}")
     os.makedirs(run_dir, exist_ok=True)
 
@@ -170,13 +170,17 @@ def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, mutpb=0.05, ch
     for ind, fit in zip(population, fitnesses):
         ind.fitness.values = fit
 
-    for gen in range(start_gen, ngen + 1):
+    for generation in range(start_gen, ngen + 1):
+        mutpb = start_mutpb
+        if generation > 0:
+            mutpb = (start_mutpb - end_mutpb) / generation
+
         if stop_criteria([entry["max"] for entry in logbook], patience):
             max_fitness = logbook[-1]["max"]
             print(f"Converged max fitness {max_fitness}")
             break
 
-        print(f"Gen {gen}", flush=True)
+        print(f"Generation {generation}", flush=True)
         population = algorithms.varAnd(population, toolbox, cxpb=cxpb, mutpb=mutpb)
 
         invalid_ind = [ind for ind in population if not ind.fitness.valid]
@@ -186,16 +190,16 @@ def main(run_number, ngen, npop, datalog, patience=10, cxpb=0.75, mutpb=0.05, ch
 
         halloffame.update(population)
         record = stats.compile(population)
-        logbook.record(gen=gen, evals=len(invalid_ind), **record)
+        logbook.record(gen=generation, evals=len(invalid_ind), **record)
 
         population = toolbox.select(population, k=len(population))
 
-        if gen % checkfreq == 0:
+        if generation % checkfreq == 0:
             # Fill the dictionary using the dict(key=value[, ...]) constructor
-            cp = dict(population=population, generation=gen, halloffame=halloffame,
+            cp = dict(population=population, generation=generation, halloffame=halloffame,
                       logbook=logbook, rndstate=random.getstate())
 
-            with open(checkpoint_file(run_dir, gen), "wb") as cp_file:
+            with open(checkpoint_file(run_dir, generation), "wb") as cp_file:
                 pickle.dump(cp, cp_file)
     best = tools.selBest(population, k=10)
 
