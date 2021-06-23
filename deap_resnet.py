@@ -19,7 +19,7 @@ SPLITS_NAMES = ["Train", "Validation", "Test"]
 PROJECT_ROOT = '.'
 
 DATASET = RetinopathyV3.name
-DATASET_REMAP = RetinopathyV3.mapping.c5.name
+DATASET_REMAP = RetinopathyV3.mapping.c3.name
 BASE_MODEL = lib.model.BaseModel.RESNET50_v2
 
 EXPERIMENT_ROOT = f'deap-{DATASET}-{DATASET_REMAP}-{BASE_MODEL}'
@@ -122,7 +122,7 @@ def start_population(npop):
     dropout, train_layers, tl_learning_rate, fine_learning_rate = [0.2, 30, 0.0001, 0.00001]
     population = toolbox.population(n=npop - 1)
     default_params = [dropout, train_layers, tl_learning_rate, fine_learning_rate]
-    population.insert(0, default_params)
+    population.insert(0, creator.Individual(default_params))
 
     return population
 
