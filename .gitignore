@@ -9,3 +9,4 @@ deap_resnet*
 notebooks/base_models.csv
 deap_results.csv
 deap-retinopathy-**/
+retinopathy-base-models/

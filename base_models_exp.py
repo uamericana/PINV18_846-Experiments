@@ -3,7 +3,7 @@ import pickle
 from sklearn.model_selection import ParameterGrid
 
 from lib import model, data, determ
-from lib.datasets.retinopathyv2b import RetinopathyV2b
+from lib.datasets.retinopathyv3 import RetinopathyV3
 from lib.experiment import DataParams, dataset_defaults, execute_experiment
 
 if __name__ == '__main__':
@@ -14,13 +14,13 @@ if __name__ == '__main__':
     determ.set_global_determinism(42)
 
     data_grid = {
-        'splits': [[0.65, 0.25, 0.15], [0.7, 0.2, 0.1]],
+        'splits': [[0.7, 0.2, 0.1]],
         'image_size': [160]
     }
 
     dataset_grid = [
-        {'dataset': [RetinopathyV2b.name],
-         'mapping': [RetinopathyV2b.mapping.c2.name, RetinopathyV2b.mapping.c3.name],
+        {'dataset': [RetinopathyV3.name],
+         'mapping': [RetinopathyV3.mapping.c2.name, RetinopathyV3.mapping.c3.name],
          **data_grid
          },
     ]
@@ -29,10 +29,10 @@ if __name__ == '__main__':
         'base_model': [m.name for m in model.BaseModel],
         'dropout': [0.2],
         'global_pooling': [model.GlobalPooling.AVG_POOLING.name, model.GlobalPooling.MAX_POOLING.name],
-        'tl_learning_rate': [10e-5],
-        'tl_epochs': [10],
-        'fine_learning_rate': [10e-6],
-        'fine_epochs': [5],
+        'tl_learning_rate': [0.0001],
+        'tl_epochs': [20],
+        'fine_learning_rate': [0.00001],
+        'fine_epochs': [10],
         'fine_layers': [30]
     }
 
@@ -87,5 +87,5 @@ if __name__ == '__main__':
             print(metrics_df)
             print("-" * 20)
 
-    with open("logbook.pkl", "wb") as logfile:
+    with open("retinopathy-base-models/logbook.pkl", "wb") as logfile:
         pickle.dump(logbook, logfile)
