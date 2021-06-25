@@ -115,10 +115,17 @@ def deap_results_df(experiment_dir):
                     })
     df = pd.DataFrame(rows)
     df.insert(0, column='experiment', value=experiment_name)
+    params = df.experiment.str.extract(r'deap-(?P<dataset>.*)-c(?P<classes>.*)-BaseModel\.(?P<base_model>.*)')
+    df = params.join(df)
     return df
 
 
 if __name__ == '__main__':
+    from datetime import datetime
+    import os
+
+    date = datetime.now().strftime("%Y%m%d")
+
     experiments = [
         'deap-retinopathy-v2b-c3-BaseModel.RESNET50_v2',
         'deap-retinopathy-v3-c3-BaseModel.RESNET50_v2'
@@ -126,3 +133,6 @@ if __name__ == '__main__':
     deap_results = [deap_results_df(e) for e in experiments]
     deap_results = pd.concat(deap_results).reset_index()
     base_results = base_results_df('retinopathy-base-models')
+    os.makedirs("results", exist_ok=True)
+    deap_results.to_csv(f"results/{date}-deap_results.csv", index=False)
+    base_results.to_csv(f"results/{date}-base_results.csv", index=False)
