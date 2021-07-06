@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     data_params = DataParams(
         dataset=RetinopathyV3.name,
-        remap=RetinopathyV3.mapping.c2.name,
+        remap=RetinopathyV3.mapping.c3.name,
         image_size=160,
         batch_size=32,
         splits=[0.7, 0.2, 0.1]
@@ -22,18 +22,18 @@ if __name__ == '__main__':
     model_params = model.ModelParams(
         base_model=model.BaseModel.RESNET50_v2,
         image_size=160,
-        num_classes=2,
+        num_classes=len(class_names),
         dropout=0.2,
         global_pooling=model.GlobalPooling.AVG_POOLING,
         use_data_augmentation=True
     )
 
     training_params = model.TrainingParams(
-        tl_learning_rate=0.0001,
+        tl_learning_rate=0.01,
         tl_epochs=20,
-        fine_learning_rate=0.00001,
+        fine_learning_rate=1e-05,
         fine_epochs=10,
-        fine_layers=30
+        fine_layers=67
     )
 
     print(model_params)
