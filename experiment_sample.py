@@ -1,6 +1,10 @@
+import pathlib
+
 from lib import model, data, determ
 from lib.datasets.retinopathyv3 import RetinopathyV3
 from lib.experiment import DataParams, dataset_defaults, execute_experiment
+import tensorflow as tf
+import json
 
 if __name__ == '__main__':
     SPLITS_NAMES = ["Train", "Validation", "Test"]
@@ -40,3 +44,19 @@ if __name__ == '__main__':
     print(training_params)
 
     metrics, reports, retinopathy_model = execute_experiment(datasets, class_names, model_params, training_params)
+    save_name = "deap-retinopathy-v3-c3-BaseModel.RESNET50_v2"
+    version = 1
+    export_path = pathlib.Path("serving", save_name, str(version))
+
+    tf.keras.models.save_model(
+        retinopathy_model.model,
+        export_path,
+        overwrite=True,
+        include_optimizer=True,
+        save_format=None,
+        signatures=None,
+        options=None
+    )
+
+    with open(pathlib.Path(export_path, "class_names.json"), "w") as f:
+        json.dump(class_names.tolist(), f)
