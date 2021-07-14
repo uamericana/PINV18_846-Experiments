@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  tf-serving:
+    build:
+      context: ./models
+      args:
+        TF_SERVING_TAG: ${TF_SERVING_TAG}
+        MODEL_NAME: ${MODEL_NAME}
+    ports:
+      - 8501:8501
+    environment:
+      - MODEL_NAME=${MODEL_NAME}
+
+  webservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODEL_CLASS_NAMES_FILE: "./models/${MODEL_NAME}/${MODEL_VERSION}/class_names.json"
+    ports:
+      - 8000:80
+    environment:
+      - RESNET_CLASS_NAMES_FILE=class_names.json
+      - SERVING_HOST=tf-serving
+      - SERVING_PORT=8501
+      - SERVING_MODEL_NAME=${MODEL_NAME}
+    depends_on:
+      - tf-serving

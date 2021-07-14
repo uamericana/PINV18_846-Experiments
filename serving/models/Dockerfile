@@ -1,0 +1,5 @@
+ARG TF_SERVING_TAG
+FROM tensorflow/serving:${TF_SERVING_TAG}
+
+ARG MODEL_NAME
+COPY ./${MODEL_NAME} /models/${MODEL_NAME}
